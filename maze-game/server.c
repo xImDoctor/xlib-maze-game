@@ -237,9 +237,109 @@ void* client_thread(void* args) {
 
 
 int main() {
+    
+    puts("[Init]Запускам наш замечательный сервер...\n");
+
+    memset(&gameState, 0, sizeof(gameState));       // nullify serialized data with 0 at start
+    pthread_mutex_init(&gameState.gameMutex, NULL);
+
+    // enemy start pos (center for now)
+    gameState.enemyPos.x = LABYRITH_SIZE / 2;
+    gameState.enemyPos.y = LABYRITH_SIZE / 2;
+
+    generateMaze();
+
+    // make server socket
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket < 0) {
+        perror("[Error]Ошибка создания сокета\n");
+        return 1;
+    }
+
+    int opt = 1;
+    setsocketopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    struct sockaddr_in serverAddress;
+
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    serverAddress.sin_port = htons(SERVER_PORT);    // at our port in game_commons.h
 
 
+    if (bind(serverSocket, (struct sockadrr*)&serverAddress, sizeof(serverAddress)) < 0) {
+        perror("[Error]Ошибка привязки сокета :(\n");
+        return 1;
+    }
+
+    if (listen(serverSocket, MAX_PLAYER_COUNT) < 0) {
+        perror("[Error]Ошибка прослушивания\n");
+        return 1;
+    }
+
+    printf("[Init]Сервер успешно запущен!\nПорт: %d\n", SERVER_PORT);
+
+    // start enemy thread
+    pthread_t enemy_tid;
+    pthread_create(&enemy_tid, NULL, enemy_thread, NULL);
+
+    // accept player connections
+    while (1) {
+
+        struct sockaddr_in clientAddress;
+        socklen_t clientLen = sizeof(clientAddress);
+
+        int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddress, &clientLen);
+
+        if (clientSocket < 0)
+            continue;       // connection failed, skip to next try
+
+        // else make player thread and bring mutex to us for it
+        pthread_mutex_lock(&gameState.gameMutex);
+
+        if (gameState.inGamePlayerCount >= MAX_PLAYER_COUNT) {  // if max players - skip this connection too
+            close(clientSocket);
+            pthread_mutex_unlock(&gameState.gameMutex);
+            continue;
+        }
 
 
+        // make player наконец-то
+        int playerID = gameState.inGamePlayerCount;
+        gameState.players[playerID].id = playerID;
+        gameState.players[playerID].pos.x = 0;
+        gameState.players[playerID].pos.y = 0;
+        gameState.players[playerID].isActive = 1;
+        gameState.players[playerID].isConnected = 1;
+        clientSockets[playerID] = clientSocket;
+
+        ++gameState.inGamePlayerCount;  // mark this player as ingame next one
+
+        printf("[Connection]Игрок %d успешно подключился!\nСокет: %d\n", playerID, clientSocket);
+
+        pthread_mutex_unlock(&gameState.gameMutex); // free mutex coz player adding completed
+
+
+        // send data to player
+        msg_t welcomeMsg;
+        welcomeMsg.type = MSG_CONNECT;
+        welcomeMsg.playerID = playerID;
+        send(clientSocket, &welcomeMsg, sizeof(welcomeMsg), 0);
+        printf("[Msg]Игроку %d отправлено приветственное сообщение\n", playerID);
+
+        sendGameState();    // resend game state
+
+        // make client thread
+        client_thread_data_t* threadData = (client_thread_data_t*)malloc(sizeof(client_thread_data_t));
+        threadData->socket = clientSocket;
+        threadData->playerID = playerID;
+        threadData->game = &gameState;
+
+        pthread_t client_tid;
+        pthread_create(&client_tid, NULL, client_thread, threadData);
+        pthread_detach(client_tid);
+    }
+
+
+    close(serverSocket); // close server before app closing
     return 0;
 }
