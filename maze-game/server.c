@@ -146,8 +146,55 @@ void movePlayer(int playerID, direction_t moveDir) {
 // enemy's thread
 void* enemy_thread(void* args) {
 
+    while(1) {
+        sleep(ENEMY_INACTIVE_TIME); //s
 
+        pthread_mutex_lock(&gameState.gameMutex);
 
+        direction_t dir = rand() % 4;
+        
+        coords oldPos = gameState.enemyPos;
+        coords newPos = oldPos;
+
+        switch (dir)
+        {
+            case DIR_UP:    --newPos.y; break;
+            case DIR_DOWN:  ++newPos.y; break;
+            case DIR_LEFT:  --newPos.x; break;
+            case DIR_RIGHT: ++newPos.x; break;
+        }
+
+        // when enemy in-bounds invert pathes and move him
+        if (newPos.x >= 0 && newPos.x < LABYRITH_SIZE && newPos.y >= 0 && newPos.y < LABYRITH_SIZE) {
+
+            // invert logic
+            if (gameState.maze[oldPos.y][oldPos.x] == WALL)
+                gameState.maze[oldPos.y][oldPos.x] = PATH;
+            else if (gameState.maze[oldPos.y][oldPos.x] == PATH)
+                gameState.maze[oldPos.y][oldPos.x] = WALL;
+            
+            gameState.enemyPos = newPos;
+            
+            // check collision with player
+            for (int i = 0; i < gameState.inGamePlayerCount; ++i) 
+                if (gameState.players[i].isActive && gameState.players[i].pos.x == newPos.x && gameState.players[i].pos.y == newPos.y) {
+                    
+                    gameState.players[i].isActive = 0;          // make him inactive (game over)
+                    printf("Игрок %d пойман вражиной басурманской!\n", i);
+                    
+                    // send player that he looser
+                    msg_t msg;
+                    msg.type = MSG_PLAYER_LOSE;
+                    msg.playerID = i;
+                    send(clientSockets[i], &msg, sizeof(msg), 0);
+                } 
+        }
+        
+        pthread_mutex_unlock(&gameState.gameMutex);
+        sendGameState();    // send actual game state (pathes, enemy pos, player dead/alive)
+    }
+
+    return NULL;
 }
 
 
