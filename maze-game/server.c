@@ -247,10 +247,10 @@ int main() {
     gameState.enemyPos.x = LABYRITH_SIZE / 2;
     gameState.enemyPos.y = LABYRITH_SIZE / 2;
 
-    generateMaze();
+    generateMaze(); // make our beautfil labyrinth
 
     // make server socket
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0); // delaem TCP IPv4 socket
     if (serverSocket < 0) {
         perror("[Error]Ошибка создания сокета\n");
         return 1;
@@ -258,19 +258,26 @@ int main() {
 
     int opt = 1;
     setsocketopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-    struct sockaddr_in serverAddress;
-
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
-    serverAddress.sin_port = htons(SERVER_PORT);    // at our port in game_commons.h
+    /* SO_REUSEADDR позволяет переиспользовать порт, даже если его прослушивали до нас другим процессом
+        и он в состоянии TIME_WAIT. Иначе при переоткрытии на этом порту даже нашего сервера возможен кабум и залипание порта,
+        тогда не сможем подключиться.
+    */
 
 
+    struct sockaddr_in serverAddress;               // contains ip, port and other sock data
+
+    serverAddress.sin_family = AF_INET;             // IPv4
+    serverAddress.sin_addr.s_addr = INADDR_ANY;     // listening all local interfaces (0.0.0.0) to bring connection from any ip of this pc
+    serverAddress.sin_port = htons(SERVER_PORT);    // at our port in game_commons.h, num of port where optioning to netword order htons byte
+
+
+    // bind serverSocket descryptor with address and port, else - error
     if (bind(serverSocket, (struct sockadrr*)&serverAddress, sizeof(serverAddress)) < 0) {
         perror("[Error]Ошибка привязки сокета :(\n");
         return 1;
     }
 
+    // turn to listening mode with max acceptance count as MAX_PLAYER_COUNT
     if (listen(serverSocket, MAX_PLAYER_COUNT) < 0) {
         perror("[Error]Ошибка прослушивания\n");
         return 1;
@@ -279,15 +286,16 @@ int main() {
     printf("[Init]Сервер успешно запущен!\nПорт: %d\n", SERVER_PORT);
 
     // start enemy thread
-    pthread_t enemy_tid;
-    pthread_create(&enemy_tid, NULL, enemy_thread, NULL);
+    pthread_t enemy_t_id;
+    pthread_create(&enemy_t_id, NULL, enemy_thread, NULL);
 
-    // accept player connections
+    // accept connections from players
     while (1) {
 
         struct sockaddr_in clientAddress;
         socklen_t clientLen = sizeof(clientAddress);
 
+        // accept returns new file descryptor to connect with current player
         int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddress, &clientLen);
 
         if (clientSocket < 0)
@@ -326,7 +334,7 @@ int main() {
         send(clientSocket, &welcomeMsg, sizeof(welcomeMsg), 0);
         printf("[Msg]Игроку %d отправлено приветственное сообщение\n", playerID);
 
-        sendGameState();    // resend game state
+        sendGameState();    // resend game state to all players
 
         // make client thread
         client_thread_data_t* threadData = (client_thread_data_t*)malloc(sizeof(client_thread_data_t));
@@ -334,9 +342,9 @@ int main() {
         threadData->playerID = playerID;
         threadData->game = &gameState;
 
-        pthread_t client_tid;
-        pthread_create(&client_tid, NULL, client_thread, threadData);
-        pthread_detach(client_tid);
+        pthread_t client_t_id;
+        pthread_create(&client_t_id, NULL, client_thread, threadData);
+        pthread_detach(client_t_id);        // detached (not joinable, pthread_join) thread that frees automaticly when ended, no waiting of return code 
     }
 
 
