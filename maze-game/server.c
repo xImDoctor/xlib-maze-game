@@ -53,11 +53,34 @@ void generateMaze() {
 }
 
 
-// make serialized state that contains in msg_t 
+// serialize game state to send it then
 void serializeGameState(char* buffer) {
 
+    int offset = 0;
 
+    for (int i = 0; i < LABYRITH_SIZE; ++i)
+        for (int j = 0; j < LABYRITH_SIZE; ++j) {
+            
+            int playerHere = -1;  // check if player in this pos and return his ID
+            
+            // parse in search of player pos
+            for (int p = 0; p < gameState.inGamePlayerCount; ++p) 
+                if (gameState.players[p].isConnected && gameState.players[p].pos.y == i  && gameState.players[p].pos.x == j) 
+                    playerHere = gameState.players[p].id;
+                    break;
+                
+            if (gameState.enemyPos.y == i && gameState.enemyPos.x == j) 
+                buffer[offset++] = ENEMY;
+            else if (playerHere >= 0)
+                buffer[offset++] = '0' + playerHere;
+            else
+                buffer[offset++] = gameState.maze[i][j];
+        }
+    buffer[offset] = '\0';
+    
 }
+
+
 
 // send game state to connected clients
 void sendGameState() {
