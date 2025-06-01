@@ -32,6 +32,9 @@
 #define ENEMY 'E'
 #define ESCAPE 'X'
 
+// pauses in seconds between enemy move
+#define ENEMY_INACTIVE_TIME 1
+
 
 // working enums and structures
 
