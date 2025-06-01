@@ -77,27 +77,68 @@ void serializeGameState(char* buffer) {
                 buffer[offset++] = gameState.maze[i][j];
         }
     buffer[offset] = '\0';
-    
+
 }
 
 
 
 // send game state to connected clients
 void sendGameState() {
+    msg_t msg;
 
+    msg.type = MSG_GAME_STATE;
+    serializeGameState(msg.gameData);
+
+    for (int i = 0; i < gameState.inGamePlayerCount; ++i)
+        if (gameState.players[i].isConnected)
+            send(clientSockets[i], &msg, sizeof(msg), 0);   // send using network
 }
 
 
 // check move possibility
 int isMovePossible(coords newCoords) {
 
+    // check borders
+    if (newCoords.x < 0 || newCoords.x >= LABYRITH_SIZE || newCoords.y < 0 || newCoords.y > LABYRITH_SIZE)
+        return 0;
+
+    // check path/not
+    return gameState.maze[newCoords.y][newCoords.x] != WALL;
 }
 
 
 // move client players with threads ...
 void movePlayer(int playerID, direction_t moveDir) {
 
+    pthread_mutex_lock(&gameState.gameMutex);       // try to bring mutex, if its free - do moving, else - freeze thread and wait
 
+    player_t* player = &gameState.players[playerID];    // player address in ingame players
+
+
+    if (!player->isActive) {    // if player not active - free mutex
+        pthread_mutex_unlock(&gameState.gameMutex);
+        return;
+    }
+
+    coords newPos = {player->pos.x, player->pos.y}; // save current pos to change it
+
+    switch (moveDir)
+    {
+        case DIR_UP:    --newPos.y; break;
+        case DIR_DOWN:  ++newPos.y; break;
+        case DIR_LEFT:  --newPos.x; break;
+        case DIR_RIGHT: ++newPos.x; break;
+    }
+
+    if (isMovePossible(newPos)) {
+
+        player->pos = newPos;
+
+        if (gameState.maze[newPos.y][newPos.x] == ESCAPE)
+            printf("Игрок %d добрался до выхода!\n", player->id);
+    }
+
+    pthread_mutex_unlock(&gameState.gameMutex);
 }
 
 
