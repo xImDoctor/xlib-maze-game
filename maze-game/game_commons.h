@@ -65,6 +65,8 @@ typedef struct {
     player_t players[MAX_PLAYER_COUNT];
     int inGamePlayerCount;
 
+    position_t enemyPos;
+
     pthread_mutex_t gameMutex;     // mutex for ingame threads
 
 } game_state_t;
