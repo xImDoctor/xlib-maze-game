@@ -1,3 +1,7 @@
+#ifndef GAME_COMMONS_H
+#define GAME_COMMONS_H
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,9 +89,8 @@ typedef struct {
     int playerID;
 
     game_state_t* game;
-    
+
 }  client_thread_data_t;
 
 
-
-
+#endif
