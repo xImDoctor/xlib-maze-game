@@ -201,8 +201,37 @@ void* enemy_thread(void* args) {
 // thread for player/client
 void* client_thread(void* args) {
 
+    client_thread_data_t* data = (client_thread_data_t*)args;
+    msg_t msg;
 
+    // loop to recive msgs
+    while(1) {
+        int bytes = recv(data->socket, &msg, sizeof(msg), 0);
 
+        if (bytes <= 0)
+            break;
+        
+        switch(msg.type) {
+
+            case MSG_MOVE:
+                movePlayer(data->playerID, msg.direction);
+                sendGameState();
+                break;
+            case MSG_DISCONNECT:
+                gameState.players[data->playerID].isActive = 0;
+                gameState.players[data->playerID].isConnected = 0;
+                break;
+        }
+    }
+
+    // if client disconnected
+    pthread_mutex_lock(&gameState.gameMutex);
+    gameState.players[data->playerID].isConnected = 0;
+    pthread_mutex_unlock(&gameState.gameMutex);
+
+    close(data->socket);
+    free(data);
+    return NULL;
 }
 
 
