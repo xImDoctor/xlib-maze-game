@@ -8,7 +8,7 @@ The game is a multi-player maze with a client-server architecture, where players
 
 - **Procedural maze generation** with guaranteed passability
 - **Up to 9 players** at the same time (indicated by numbers 0-8)
-- ** A smart enemy** that changes the walls of the maze when moving
+- **A smart enemy** that changes the walls of the maze when moving
 - **Multithreaded architecture** using pthread
 - **Graphical interface** based on X11/Xlib
 - **Network communication** via TCP sockets
@@ -116,11 +116,11 @@ If the player gets caught by the enemy, he loses and loses control, but he can a
 
 ### Communication protocol
 Messages between client and server:
-- `MSG_CONNECT' - connecting a new player
-- `MSG_MOVE' - player movement
+- `MSG_CONNECT` - connecting a new player
+- `MSG_MOVE` - player movement
 - `MSG_GAME_STATE` - the state of the playing field
-- `MSG_PLAYER_LOST' - notification of defeat
-- `MSG_DISCONNECT' - disabling the player
+- `MSG_PLAYER_LOST` - notification of defeat
+- `MSG_DISCONNECT` - disabling the player
 
 
 ## Debug
@@ -137,4 +137,4 @@ The project organizes the output of messages to the console.
 
 
 ## Extenstions
-I'll think about it later...
+I'll think about it later... Firstly I wanna upgrade player's UI
