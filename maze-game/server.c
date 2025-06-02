@@ -257,7 +257,7 @@ int main() {
     }
 
     int opt = 1;
-    setsocketopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     /* SO_REUSEADDR позволяет переиспользовать порт, даже если его прослушивали до нас другим процессом
         и он в состоянии TIME_WAIT. Иначе при переоткрытии на этом порту даже нашего сервера возможен кабум и залипание порта,
         тогда не сможем подключиться.
@@ -272,7 +272,7 @@ int main() {
 
 
     // bind serverSocket descryptor with address and port, else - error
-    if (bind(serverSocket, (struct sockadrr*)&serverAddress, sizeof(serverAddress)) < 0) {
+    if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
         perror("[Error]Ошибка привязки сокета :(\n");
         return 1;
     }
