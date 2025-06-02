@@ -159,9 +159,9 @@ int drawGame() {
 
     char statusMsg[100];    // buffer to contain and show msg
     if (clientState.isActive)
-        snprintf(statusMsg, sizeof(statusMsg), "Игрок %d ещё живой", clientState.playerID);
+        snprintf(statusMsg, sizeof(statusMsg), "Player %d is still alive", clientState.playerID);
     else
-        snprintf(statusMsg, sizeof(statusMsg), "Игрок %d проиграл", clientState.playerID);
+        snprintf(statusMsg, sizeof(statusMsg), "Player %d is dead", clientState.playerID);
     
 
     XDrawString(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, 10, clientState.graphics.winHeight + 20, statusMsg, strlen(statusMsg));
