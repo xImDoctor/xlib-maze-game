@@ -33,13 +33,142 @@ typedef struct {
 client_state_t clientState;     // current client state data
 
 
+// init player (client) window, and set base client state and graphics fields
 int init() {
-
+    clientState.graphics.display = XOpenDisplay(NULL);
+    if (!clientState.graphics.display) {
+        fprintf(stderr, "Не удалось открыть дисплей\n");
+        return 0;
+    }
+    
+    int screen = DefaultScreen(clientState.graphics.display);
+    clientState.graphics.ingameCellSize = 40;
+    clientState.graphics.winWidth = LABYRITH_SIZE * clientState.graphics.ingameCellSize;
+    clientState.graphics.winHeight = LABYRITH_SIZE * clientState.graphics.ingameCellSize;
+    
+    clientState.graphics.window = XCreateSimpleWindow(
+        clientState.graphics.display,
+        RootWindow(clientState.graphics.display, screen),
+        100, 100,
+        clientState.graphics.winWidth, clientState.graphics.winHeight,
+        1,
+        BlackPixel(clientState.graphics.display, screen),
+        WhitePixel(clientState.graphics.display, screen)
+    );
+    
+    XSelectInput(clientState.graphics.display, clientState.graphics.window, ExposureMask | KeyPressMask | StructureNotifyMask);
+    XMapWindow(clientState.graphics.display, clientState.graphics.window);
+    
+    clientState.graphics.gc = XCreateGC(clientState.graphics.display, clientState.graphics.window, 0, NULL);
+    
+    XStoreName(clientState.graphics.display, clientState.graphics.window, "Maze Game Client");
+    
+    return 1;
 }
 
+
+// draw graphics on player window
 int drawGame() {
 
+    pthread_mutex_lock(&clientState.fieldMutex);
 
+    XClearWindow(clientState.graphics.display, clientState.graphics.window);
+
+    for (int i = 0; i < LABYRITH_SIZE; ++i)
+        for (int j = 0; j < LABYRITH_SIZE; ++j) {
+
+            coords cellStart;   // start top-left corner coords
+
+            // current cell destination (start coords)
+            cellStart.x = j * clientState.graphics.ingameCellSize;
+            cellStart.y = i * clientState.graphics.ingameCellSize;
+
+            char cell = clientState.gameField[i * LABYRITH_SIZE + j];
+            
+            switch (cell) {
+
+                case WALL:  // draw wall as black rectangle
+
+                    XSetForeground(clientState.graphics.display, clientState.graphics.gc, BlackPixel(clientState.graphics.display, 0));
+                    XFillRectangle(clientState.graphics.display, clientState.graphics.window,
+                                  clientState.graphics.gc, cellStart.x, cellStart.y, clientState.graphics.ingameCellSize, clientState.graphics.ingameCellSize);
+                    break;
+                    
+
+                case PATH:  // white rectangle with borders (frame)
+
+                    XSetForeground(clientState.graphics.display, clientState.graphics.gc, WhitePixel(clientState.graphics.display, 0));
+                    XFillRectangle(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, cellStart.x, cellStart.y, 
+                                  clientState.graphics.ingameCellSize, clientState.graphics.ingameCellSize);
+
+                    XSetForeground(clientState.graphics.display, clientState.graphics.gc, BlackPixel(clientState.graphics.display, 0));
+                    XDrawRectangle(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, cellStart.x, cellStart.y, 
+                                  clientState.graphics.ingameCellSize, clientState.graphics.ingameCellSize);
+                    break;
+                    
+
+                case ESCAPE: // escape - green rectangle
+
+                    XSetForeground(clientState.graphics.display, clientState.graphics.gc, 0x00FF00);
+                    XFillRectangle(clientState.graphics.display, clientState.graphics.window,
+                                  clientState.graphics.gc, cellStart.x, cellStart.y,
+                                  clientState.graphics.ingameCellSize, clientState.graphics.ingameCellSize);
+                    break;
+                    
+
+                case ENEMY: // enemy - red circle
+
+                    XSetForeground(clientState.graphics.display, clientState.graphics.gc, WhitePixel(clientState.graphics.display, 0));
+                    XFillRectangle(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, cellStart.x, cellStart.y,
+                                  clientState.graphics.ingameCellSize, clientState.graphics.ingameCellSize);
+
+                    XSetForeground(clientState.graphics.display, clientState.graphics.gc, 0xFF0000);
+                    XFillArc(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, cellStart.x + 5, cellStart.y + 5, 
+                            clientState.graphics.ingameCellSize - 10, clientState.graphics.ingameCellSize - 10, 0, 360 * 64);
+                    break;
+                    
+
+                default: // default means that this is player, make him like blue circle with its connection (ID) number
+
+                    if (cell >= '0' && cell <= MAX_PLAYER_CHAR) {
+
+                        // draw blue circle
+                        XSetForeground(clientState.graphics.display, clientState.graphics.gc, WhitePixel(clientState.graphics.display, 0));
+                        XFillRectangle(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, cellStart.x, cellStart.y, 
+                                      clientState.graphics.ingameCellSize, clientState.graphics.ingameCellSize);
+                        
+                        XSetForeground(clientState.graphics.display, clientState.graphics.gc, 0x0000FF);
+                        XFillArc(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, cellStart.x + 5, cellStart.y + 5, 
+                                clientState.graphics.ingameCellSize - 10, clientState.graphics.ingameCellSize - 10, 0, 360 * 64);
+                        
+                        // draw number
+                        XSetForeground(clientState.graphics.display, clientState.graphics.gc, WhitePixel(clientState.graphics.display, 0));
+
+                        char player_str[2] = {cell, '\0'};
+                        XDrawString(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, cellStart.x + 15, cellStart.y + 25, 
+                                    player_str, 1);
+                    }
+                    break;
+            }
+        }
+    
+    
+    // show player status
+    XSetForeground(clientState.graphics.display, clientState.graphics.gc, BlackPixel(clientState.graphics.display, 0));
+
+
+    char statusMsg[100];    // buffer to contain and show msg
+    if (clientState.isActive)
+        snprintf(statusMsg, sizeof(statusMsg), "Игрок %d ещё живой", clientState.playerID);
+    else
+        snprintf(statusMsg, sizeof(statusMsg), "Игрок %d проиграл", clientState.playerID);
+    
+
+    XDrawString(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, 10, clientState.graphics.winHeight + 20, statusMsg, strlen(statusMsg));
+    
+
+    pthread_mutex_unlock(&clientState.fieldMutex);
+    XFlush(clientState.graphics.display);
 }
 
 
