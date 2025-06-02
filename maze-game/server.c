@@ -65,9 +65,10 @@ void serializeGameState(char* buffer) {
             
             // parse in search of player pos
             for (int p = 0; p < gameState.inGamePlayerCount; ++p) 
-                if (gameState.players[p].isConnected && gameState.players[p].pos.y == i  && gameState.players[p].pos.x == j) 
+                if (gameState.players[p].isConnected && gameState.players[p].pos.y == i  && gameState.players[p].pos.x == j) {
                     playerHere = gameState.players[p].id;
                     break;
+                }
                 
             if (gameState.enemyPos.y == i && gameState.enemyPos.x == j) 
                 buffer[offset++] = ENEMY;
