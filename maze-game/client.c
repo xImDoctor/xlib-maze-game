@@ -231,11 +231,34 @@ void sendMove(direction_t moveDir) {
     send(clientState.socket, &msg, sizeof(msg), 0);
 }
 
+
 // process move keys using (WASD and just arrows)
 // idk for now press or release so its just using
 void processKeyEvent(XKeyEvent* event) {
+    
+    KeySym key = XLookupKey(event, 0);
 
+    switch (key) {
+        case XK_Up: case XK_w:
+            sendMove(DIR_UP);
+            break;
 
+        case XK_Down: case XK_s:
+            sendMove(DIR_DOWN);
+            break;
+
+        case XK_Left: case XK_a:
+            sendMove(DIR_LEFT);
+            break;
+
+        case XK_Right: case XK_d:
+            sendMove(DIR_RIGHT);
+            break;
+
+        case XK_Escape: // if esc used - close game
+            exit(0);
+            break;
+    }
 }
 
 
