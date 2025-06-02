@@ -5,3 +5,5 @@ but even client (player side) draws it and handles events using xlib
 
 all players for server are threads, and server connection for players also is thread
 
+
+Now when server starts successfully, need to complete client and test it =D
