@@ -338,6 +338,7 @@ int main(int argc, char* argv[]) {
     
     if (connect(clientState.socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
         perror("[Error]Ошибка подключения к серверу\n");
+        perror("[Error]Возможно, сервер недоступен или нет свободных слотов для подключения\n");
         return 1;
     }
     
