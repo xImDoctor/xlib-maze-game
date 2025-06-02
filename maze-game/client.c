@@ -236,7 +236,7 @@ void sendMove(direction_t moveDir) {
 // idk for now press or release so its just using
 void processKeyEvent(XKeyEvent* event) {
     
-    KeySym key = XLookupKey(event, 0);
+    KeySym key = XLookupKeysym(event, 0);
 
     switch (key) {
         case XK_Up: case XK_w:
