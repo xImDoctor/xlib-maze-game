@@ -43,8 +43,8 @@ int init() {
     
     int screen = DefaultScreen(clientState.graphics.display);
     clientState.graphics.ingameCellSize = 40;
-    clientState.graphics.winWidth = LABYRITH_SIZE * clientState.graphics.ingameCellSize;
-    clientState.graphics.winHeight = LABYRITH_SIZE * clientState.graphics.ingameCellSize;
+    clientState.graphics.winWidth = LABYRITH_SIZE * clientState.graphics.ingameCellSize + CLIENT_WINDOW_OFFSET;
+    clientState.graphics.winHeight = LABYRITH_SIZE * clientState.graphics.ingameCellSize + CLIENT_WINDOW_OFFSET;
     
     clientState.graphics.window = XCreateSimpleWindow(
         clientState.graphics.display,
@@ -164,7 +164,7 @@ int drawGame() {
         snprintf(statusMsg, sizeof(statusMsg), "Player %d is dead", clientState.playerID);
     
 
-    XDrawString(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, 10, clientState.graphics.winHeight + 20, statusMsg, strlen(statusMsg));
+    XDrawString(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, 10, clientState.graphics.winHeight - 100, statusMsg, strlen(statusMsg));
     
 
     pthread_mutex_unlock(&clientState.fieldMutex);

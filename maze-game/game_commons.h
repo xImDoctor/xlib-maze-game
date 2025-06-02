@@ -18,6 +18,7 @@
 
 #include <errno.h>
 
+#define CLIENT_WINDOW_OFFSET 200
 
 #define LABYRITH_SIZE 10
 #define MAX_PLAYER_COUNT 9
