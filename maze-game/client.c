@@ -262,10 +262,80 @@ void processKeyEvent(XKeyEvent* event) {
 }
 
 
+// get server ip from argv, parse just ip argument as well
 int main(int argc, char* argv[]) {
 
+    // check arg count
+    if (argc != 2) {    // first arg - './thisapp', second one - ip addr
+        printf("Для запуска: %s <ip-сервера>\n", argv[0]);
+        return 1;
+    }
 
 
+    // nullify client state data and init its mutex
+    memset(&clientState, 0, sizeof(clientState));
+    pthread_mutex_init(&clientState.fieldMutex, NULL);
+    clientState.isActive = 1;
 
+
+    // connection to server
+    clientState.socket = socket(AF_INET, SOCK_STREAM, 0);
+    
+    if (clientState.socket < 0) {
+        perror("[Error]Ошибка создания сокета\n");
+        return 1;
+    }
+
+    struct sockaddr_in serverAddress;
+
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(SERVER_PORT);
+    inet_pton(AF_INET, argv[1], &serverAddress.sin_addr);
+    
+    if (connect(clientState.socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
+        perror("[Error]Ошибка подключения к серверу\n");
+        return 1;
+    }
+    
+    printf("Подключение к серверу %s:%d выполнено успешно\n", argv[1], SERVER_PORT);
+    
+
+    // init graphics, returns 1 if success
+    if (!init())
+        return 1;
+    
+
+    pthread_t network_t_id;
+    pthread_create(&network_t_id, NULL, network_thread, NULL);
+
+
+    // game keys (to console)
+    puts("[Rules]Управление: WASD или стрелки, ESC - выход из игры\nЦель - выбраться из лабиринта, не попавшись врагу\n");
+
+
+    // event loop of this client
+    XEvent event;
+    while (1) {
+        XNextEvent(clientState.graphics.display, &event);
+
+        switch(event.type) {
+
+            case Expose:
+                drawGame();
+                break;
+
+            case KeyPress:
+                processKeyEvent(&event.xkey);
+                break;
+            
+            case DestroyNotify:
+                exit(0);
+                break;
+        }
+
+    }
+
+    close(clientState.socket);
+    XCloseDisplay(clientState.graphics.display);
     return 0;
 }
