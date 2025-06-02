@@ -23,6 +23,8 @@ typedef struct {
     int playerID;
     int isActive;
 
+    int gameTimeLeft; // game timer from server
+
     char gameField[LABYRITH_SIZE*LABYRITH_SIZE+1]; // + 1 to \0
 
     pthread_mutex_t fieldMutex;
@@ -172,6 +174,34 @@ int drawGame() {
 }
 
 
+// parse game state with timer now
+void parseGameState(const char* gameData) {
+
+    pthread_mutex_lock(&clientState.fieldMutex);
+    
+    // timer put after '|' from server
+    char* timePos = strchr(gameData, '|');
+    
+    if (timePos) {
+
+        // copy game field data
+        int fieldSize = timePos - gameData;
+        strncpy(clientState.gameField, gameData, fieldSize);
+        clientState.gameField[fieldSize] = '\0';
+        
+        // copy time and convert to int
+        clientState.gameTimeLeft = atoi(timePos + 1);
+
+    } else {        // if timer not found (old server version)
+
+        strcpy(clientState.gameField, gameData);
+        clientState.gameTimeLeft = 0;
+    }
+    
+    pthread_mutex_unlock(&clientState.fieldMutex);
+}
+
+
 // thread to loot data from our pretty server)
 void* network_thread(void* args) {
 
@@ -189,16 +219,18 @@ void* network_thread(void* args) {
             
             case MSG_CONNECT:
                 clientState.playerID = msg.playerID;
+                clientState.isActive = 1; // restore activity when connected
                 printf("[MSG_CONNECT]Успешно подключились к серверу как игрок %d\n", clientState.playerID);
                 break;
 
-
+            // now parse server game state data at parseGameState()
             case MSG_GAME_STATE:
                 // bring mutex from drawGame and get new game data from server
-                pthread_mutex_lock(&clientState.fieldMutex);
-                strcpy(clientState.gameField, msg.gameData);    // copy sent by server game data (field string) to client one to visualize
-                pthread_mutex_unlock(&clientState.fieldMutex);
+                //pthread_mutex_lock(&clientState.fieldMutex);
+                //strcpy(clientState.gameField, msg.gameData);    // copy sent by server game data (field string) to client one to visualize
+                //pthread_mutex_unlock(&clientState.fieldMutex);
 
+                parseGameState(msg.gameData);   // locks mutex by itself now
                 drawGame();     // redraw game screen with actucal game data
                 break;
 
@@ -207,9 +239,20 @@ void* network_thread(void* args) {
             case MSG_PLAYER_LOSE:
                 if (msg.playerID == clientState.playerID) {
                     clientState.isActive = 0;
+                    drawGame(); // redraw game to change status field at time
+
                     printf("Вы (игрок %d) проиграли!\n", clientState.playerID);
                 }
                 break;
+
+                case MSG_RESTART_GAME:
+                    if (msg.playerID == clientState.playerID) {
+
+                        clientState.isActive = 1;   //reset player after game restart
+                        printf("Игра перезапущена. А ваш игрок воскрес!\n");
+                        drawGame();
+                    }
+                    break;
         }
     }
 
