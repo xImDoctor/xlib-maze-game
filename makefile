@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -std=c99 -pthread	# -Wall -Wextra - check all warnings when compile
-SERVER_TARGET = server
-CLIENT_TARGET = client
+SERVER_TARGET = game-server
+CLIENT_TARGET = game-client
 SERVER_SRC = maze-game/server.c
 CLIENT_SRC = maze-game/client.c
 CLIENT_LIBS = -lX11
