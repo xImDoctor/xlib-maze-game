@@ -37,3 +37,4 @@ thoughts.txt
 *.exe
 *.out
 *.app
+.vscode/settings.json
