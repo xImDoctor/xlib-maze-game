@@ -406,7 +406,7 @@ int main() {
         // if no free slots just skip player
         if (playerID == -1) {
 
-            lose(clientSocket);
+            close(clientSocket);
             
             pthread_mutex_unlock(&gameState.gameMutex);
             printf("[Connection] Подключение отклонено: нет свободных слотов\n");
