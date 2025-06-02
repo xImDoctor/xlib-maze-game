@@ -48,7 +48,7 @@ make debug-client
 
 ### 1. Run server
 ```bash
-./server
+./game-server
 ```
 The server will start on **port 8080** and start accepting connections
 
@@ -58,10 +58,10 @@ The server will start on **port 8080** and start accepting connections
 ### 2. Run clients
 ```bash
 # Connect to local server
-./client 127.0.0.1
+./game-client 127.0.0.1
 
 # Connect to remote one
-./client <ip-address-of-server>
+./game-client <ip-address-of-server>
 ```
 
 ### Clean
