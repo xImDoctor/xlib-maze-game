@@ -202,6 +202,16 @@ void parseGameState(const char* gameData) {
     pthread_mutex_unlock(&clientState.fieldMutex);
 }
 
+// method to change window title and add player's number to it when connected successfully
+void changeWindowTitle(const char* newFormattedTitle) {
+
+    char windowTitle[100];
+
+    snprintf(windowTitle, sizeof(windowTitle), newFormattedTitle, clientState.playerID);
+
+    XStoreName(clientState.graphics.display, clientState.graphics.window, windowTitle);
+    XFlush(clientState.graphics.display); // flush to show changes
+}
 
 // thread to loot data from our pretty server)
 void* network_thread(void* args) {
@@ -222,6 +232,9 @@ void* network_thread(void* args) {
                 clientState.playerID = msg.playerID;
                 clientState.isActive = 1; // restore activity when connected
                 printf("[MSG_CONNECT]Успешно подключились к серверу как игрок %d\n", clientState.playerID);
+
+                // change window title with my custom
+                changeWindowTitle("Maze Game Client | Player %d");
                 break;
 
             // now parse server game state data at parseGameState()
