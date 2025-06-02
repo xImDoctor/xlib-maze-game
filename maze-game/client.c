@@ -216,9 +216,19 @@ void* network_thread(void* args) {
     return NULL;
 }
 
-// send player move to server
+// send player move issue (msg) to server
 void sendMove(direction_t moveDir) {
 
+    if (!clientState.isActive)
+        return;
+    
+    msg_t msg;
+
+    msg.type = MSG_MOVE;
+    msg.playerID = clientState.playerID;
+    msg.direction = moveDir;
+
+    send(clientState.socket, &msg, sizeof(msg), 0);
 }
 
 // process move keys using (WASD and just arrows)
