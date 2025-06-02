@@ -159,11 +159,12 @@ int drawGame() {
     XSetForeground(clientState.graphics.display, clientState.graphics.gc, BlackPixel(clientState.graphics.display, 0));
 
 
-    char statusMsg[100];    // buffer to contain and show msg
+    char statusMsg[200];    // buffer to contain and show msg
+
     if (clientState.isActive)
-        snprintf(statusMsg, sizeof(statusMsg), "Player %d is still alive", clientState.playerID);
+        snprintf(statusMsg, sizeof(statusMsg), "Time left: %d | Player %d is still alive", clientState.gameTimeLeft, clientState.playerID);
     else
-        snprintf(statusMsg, sizeof(statusMsg), "Player %d is dead", clientState.playerID);
+        snprintf(statusMsg, sizeof(statusMsg), "Time left: %d | Player %d is dead", clientState.gameTimeLeft, clientState.playerID);
     
 
     XDrawString(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, 10, clientState.graphics.winHeight - 100, statusMsg, strlen(statusMsg));
