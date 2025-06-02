@@ -172,10 +172,48 @@ int drawGame() {
 }
 
 
-// thread to loot our pretty server)
+// thread to loot data from our pretty server)
 void* network_thread(void* args) {
 
+    msg_t msg;
 
+    while (1) {
+
+        int bytes = recv(clientState.socket, &msg, sizeof(msg), 0);
+        if (bytes <= 0) {
+            perror("[Error]Соединение с сервером потеряно\n");
+            break;
+        }
+
+        switch(msg.type) {
+            
+            case MSG_CONNECT:
+                clientState.playerID = msg.playerID;
+                printf("[MSG_CONNECT]Успешно подключились к серверу как игрок %d\n", clientState.playerID);
+                break;
+
+
+            case MSG_GAME_STATE:
+                // bring mutex from drawGame and get new game data from server
+                pthread_mutex_lock(&clientState.fieldMutex);
+                strcpy(clientState.gameField, msg.gameData);    // copy sent by server game data (field string) to client one to visualize
+                pthread_mutex_unlock(&clientState.fieldMutex);
+
+                drawGame();     // redraw game screen with actucal game data
+                break;
+
+
+            // check if lose msg for this player exactly
+            case MSG_PLAYER_LOSE:
+                if (msg.playerID == clientState.playerID) {
+                    clientState.isActive = 0;
+                    printf("Вы (игрок %d) проиграли!\n", clientState.playerID);
+                }
+                break;
+        }
+    }
+
+    return NULL;
 }
 
 // send player move to server
