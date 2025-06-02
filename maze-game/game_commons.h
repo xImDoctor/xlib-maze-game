@@ -27,6 +27,9 @@
 #define SERVER_PORT 8080
 #define MSG_BUFFER_SIZE 1024
 
+// in seconds - 1 min now
+#define GAME_RESTART_TIME 60
+
 
 // map symbls
 #define WALL '#'
@@ -46,7 +49,8 @@ typedef enum {
     MSG_MOVE,
     MSG_GAME_STATE,
     MSG_PLAYER_LOSE,
-    MSG_DISCONNECT
+    MSG_DISCONNECT,
+    MSG_RESTART_GAME    // when timer left
 } msg_type_t;
 
 typedef enum {DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT} direction_t;   // move dirs
@@ -69,6 +73,8 @@ typedef struct {
 
     player_t players[MAX_PLAYER_COUNT];
     int inGamePlayerCount;
+
+    int gameTimeLeft;
 
     position_t enemyPos;
 

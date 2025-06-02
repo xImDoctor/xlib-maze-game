@@ -77,8 +77,11 @@ void serializeGameState(char* buffer) {
             else
                 buffer[offset++] = gameState.maze[i][j];
         }
-    buffer[offset] = '\0';
+    
+    // add timer to buffer to remaining len
+    sprintf(buffer+offset, "|%d", gameState.gameTimeLeft);  // sprintf puts \0
 
+    //buffer[offset] = '\0';
 }
 
 
@@ -93,6 +96,67 @@ void sendGameState() {
     for (int i = 0; i < gameState.inGamePlayerCount; ++i)
         if (gameState.players[i].isConnected)
             send(clientSockets[i], &msg, sizeof(msg), 0);   // send using network
+}
+
+
+// method to restart game session (restore maze, player etc) when timer in game_commons.h left
+void restartGame() {
+
+    pthread_mutex_lock(&gameState.gameMutex);
+
+    printf("[Restart]Время истекло! Перезапуск игровой сессии\n");
+    
+    generateMaze();
+    
+    // restore all connected players at start (0,0)
+    for (int i = 0; i < gameState.inGamePlayerCount; ++i)
+        if (gameState.players[i].isConnected) {
+
+            gameState.players[i].isActive = 1;
+            gameState.players[i].pos.x = 0;
+            gameState.players[i].pos.y = 0;
+            
+            // send restart msg to players
+            msg_t msg;
+            msg.type = MSG_RESTART_GAME;
+            msg.playerID = i;
+
+            send(clientSockets[i], &msg, sizeof(msg), 0);
+        }
+    
+    
+    // other resets, no comments btw
+    gameState.enemyPos.x = LABYRITH_SIZE / 2;
+    gameState.enemyPos.y = LABYRITH_SIZE / 2;
+    
+    gameState.gameTimeLeft = GAME_RESTART_TIME;
+    
+
+    pthread_mutex_unlock(&gameState.gameMutex);
+
+    sendGameState();        // update gamestate for all players (resend)
+}
+
+// thread to count game timer, letz check it every second as well to decrease timer every second
+void* timer_thread(void* args) {
+
+    while (1) {
+        sleep(1);
+
+        pthread_mutex_lock(&gameState.gameMutex);
+
+        --gameState.gameTimeLeft;
+
+        if (gameState.gameTimeLeft <= 0) {
+            pthread_mutex_unlock(&gameState.gameMutex); // unlock mutex coz restart method also locks it
+            restartGame();
+
+        }
+        else 
+            pthread_mutex_unlock(&gameState.gameMutex);
+    }
+
+    return NULL;
 }
 
 
@@ -235,6 +299,23 @@ void* client_thread(void* args) {
     return NULL;
 }
 
+// find free slot for player that connects
+int findFreePlayerSlot() {
+    
+    // search for disconnected ones firstly
+    for (int i = 0; i < gameState.inGamePlayerCount; ++i)
+        if (!gameState.players[i].isConnected)
+            return i;
+        
+    
+    // if all connected - return -1 that means disconnect
+    if (gameState.inGamePlayerCount >= MAX_PLAYER_COUNT) {
+        return -1; // нет свободных слотов
+    }
+    
+    // if no disconnected - return new slot
+    return gameState.inGamePlayerCount;
+}
 
 
 int main() {
@@ -286,9 +367,17 @@ int main() {
 
     printf("[Init]Сервер успешно запущен!\nПорт: %d\n", SERVER_PORT);
 
+    // start game timer before enemy
+    gameState.gameTimeLeft = GAME_RESTART_TIME;
+
+    pthread_t timer_t_id;
+    pthread_create(&timer_t_id, NULL, timer_thread, NULL);
+
+
     // start enemy thread
     pthread_t enemy_t_id;
     pthread_create(&enemy_t_id, NULL, enemy_thread, NULL);
+
 
     // accept connections from players
     while (1) {
@@ -305,15 +394,28 @@ int main() {
         // else make player thread and bring mutex to us for it
         pthread_mutex_lock(&gameState.gameMutex);
 
-        if (gameState.inGamePlayerCount >= MAX_PLAYER_COUNT) {  // if max players - skip this connection too
+        // wrapped to new slot find function
+        /*if (gameState.inGamePlayerCount >= MAX_PLAYER_COUNT) {  // if max players - skip this connection too
             close(clientSocket);
             pthread_mutex_unlock(&gameState.gameMutex);
+            continue;
+        }*/
+
+        int playerID = findFreePlayerSlot();
+
+        // if no free slots just skip player
+        if (playerID == -1) {
+
+            lose(clientSocket);
+            
+            pthread_mutex_unlock(&gameState.gameMutex);
+            printf("[Connection] Подключение отклонено: нет свободных слотов\n");
             continue;
         }
 
 
         // make player наконец-то
-        int playerID = gameState.inGamePlayerCount;
+        //int playerID = gameState.inGamePlayerCount;   // makes at free slot search
         gameState.players[playerID].id = playerID;
         gameState.players[playerID].pos.x = 0;
         gameState.players[playerID].pos.y = 0;
@@ -321,9 +423,11 @@ int main() {
         gameState.players[playerID].isConnected = 1;
         clientSockets[playerID] = clientSocket;
 
-        ++gameState.inGamePlayerCount;  // mark this player as ingame next one
+        // wrap reconnection check (increase only if new player)
+        if (playerID == gameState.inGamePlayerCount)
+            ++gameState.inGamePlayerCount;  // mark this player as ingame next one
 
-        printf("[Connection]Игрок %d успешно подключился!\nСокет: %d\n", playerID, clientSocket);
+        printf("[Connection]Игрок %d успешно подключился/переподключился!\nСокет: %d\n", playerID, clientSocket);
 
         pthread_mutex_unlock(&gameState.gameMutex); // free mutex coz player adding completed
 
