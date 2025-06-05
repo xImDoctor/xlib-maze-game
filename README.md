@@ -12,14 +12,14 @@ Now it is a kind of exam project implemented overnight 😉😂 as part of the *
 
 ## Сontent
 The brief of document links
-1. [Current Game Feautures](##Current-Game-Features)
-2. [Dependencies](###Dependecies)
-3. [Build with make](##Build-with-`make`)
-4. [Client and server run instruction](##Game-start-(run-instruction))
-5. [Game rules, controls, mechanics etc](##Game-Rules)
-6. [Few words about project architecture](##Architecture)
-7. [About console debug messages](###Debug)
-8. [Feature plans](##Extenstions)
+1. [Current Game Feautures](##current-Game-Features)
+2. [Dependencies](###dependecies)
+3. [Build with make](##build-with-`make`)
+4. [Client and server run instruction](##game-start-(run-instruction))
+5. [Game rules, controls, mechanics etc](##game-Rules)
+6. [Few words about project architecture](##architecture)
+7. [About console debug messages](###debug)
+8. [Feature plans](##extenstions)
 
 
 ## Current Game Features
