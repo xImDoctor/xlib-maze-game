@@ -8,18 +8,19 @@ The game core (the server part mainly) is almost fully completed. However most o
 
 I plan to finalize the project in the near future to a specific *"combat"* version, but I can't say when exactly.
 
-Now it is a kind of exam project implemented overnight 😉😂 as part of the **System Programming** studing course somewhat covering work with an Internet connection (`TCP/IPv4`, `sockets`) and multithreading with `POSIX threads`.
+Now it is a kind of exam project implemented overnight 😉😂 as part of the **System Programming**  studing course somewhat covering work with an Internet connection (`TCP/IPv4`, `sockets`) and multithreading with `POSIX threads`.
+> There are more projects of this course but they are still private for now
 
 ## Сontent
 The brief of document links
-1. [Current Game Feautures](##current-Game-Features)
-2. [Dependencies](###dependecies)
-3. [Build with make](##build-with-`make`)
-4. [Client and server run instruction](##game-start-(run-instruction))
-5. [Game rules, controls, mechanics etc](##game-Rules)
-6. [Few words about project architecture](##architecture)
-7. [About console debug messages](###debug)
-8. [Feature plans](##extenstions)
+1. [Current Game Feautures](#current-game-features)
+2. [Dependencies](#dependencies)
+3. [Build with make](#build-with-make)
+4. [Client and server run instruction](#game-start-run-instruction)
+5. [Game rules, controls, mechanics etc](#game-rules)
+6. [Few words about project architecture](#architecture)
+7. [About console debug messages](#debug)
+8. [Feature plans](#extensions)
 
 
 ## Current Game Features
@@ -90,16 +91,15 @@ make clean
 ```
 
 
-## Controls
-
-- **WASD** or **arrows** - move player
-- **ESC** - close the game
-
-
 ## Game Rules
 
 ### Goal
 Get to the green cage (exit) before the other players and avoid getting caught by the enemy.
+
+### Controls
+
+- **WASD** or **arrows** - move player
+- **ESC** - close the game
 
 
 ### Game Field Elements
@@ -155,5 +155,5 @@ The project organizes the output of messages to the console.
 - Defeat notifications
 
 
-## Extenstions
+## Extensions
 I'll think about it later... Firstly I wanna upgrade player's UI
