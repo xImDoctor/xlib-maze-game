@@ -3,6 +3,24 @@
 
 The game is a multi-player maze with a client-server architecture, where players must reach the exit, avoiding the enemy who changes the structure of the maze.
 
+## About current state of the project
+The game core (the server part mainly) is almost fully completed. However most of the messages to the client part are currently not visualized in the `XWindow` and are displayed in the console where your client is run.
+
+I plan to finalize the project in the near future to a specific *"combat"* version, but I can't say when exactly.
+
+Now it is a kind of exam project implemented overnight 😉😂 as part of the **System Programming** studing course somewhat covering work with an Internet connection (`TCP/IPv4`, `sockets`) and multithreading with `POSIX threads`.
+
+## Сontent
+The brief of document links
+1. [Current Game Feautures](##Current-Game-Features)
+2. [Dependencies](###Dependecies)
+3. [Build with make](##Build-with-`make`)
+4. [Client and server run instruction](##Game-start-(run-instruction))
+5. [Game rules, controls, mechanics etc](##Game-Rules)
+6. [Few words about project architecture](##Architecture)
+7. [About console debug messages](###Debug)
+8. [Feature plans](##Extenstions)
+
 
 ## Current Game Features
 
@@ -14,7 +32,7 @@ The game is a multi-player maze with a client-server architecture, where players
 - **Network communication** via TCP sockets
 
 
-### Dependecies
+### Dependencies
 - Linux with X11
 - GCC compiler
 - Xlib11-dev
@@ -29,7 +47,7 @@ sudo apt-get install libx11-dev build-essential
 ```
 
 
-## Build
+## Build with `make`
 
 ```bash
 # full project (client+server)
@@ -45,7 +63,7 @@ make debug-client
 ```
 
 
-## Game start
+## Game start (run instruction)
 
 ### 1. Run server
 ```bash
