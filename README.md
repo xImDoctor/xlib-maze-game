@@ -18,6 +18,7 @@ The game is a multi-player maze with a client-server architecture, where players
 - Linux with X11
 - GCC compiler
 - Xlib11-dev
+- Make (to build)
 
 
 #### Installation of dependencies
