@@ -8,7 +8,7 @@ The game core (the server part mainly) is almost fully completed. However most o
 
 I plan to finalize the project in the near future to a specific *"combat"* version, but I can't say when exactly.
 
-Now it is a kind of exam project implemented overnight 😉😂 as part of the **System Programming**  studing course somewhat covering work with an Internet connection (`TCP/IPv4`, `sockets`) and multithreading with `POSIX threads`.
+Now it is a kind of exam project implemented overnight 😉😂 as part of the **System Coding**  studing course somewhat covering work with an Internet connection (`TCP/IPv4`, `sockets`) and multithreading with `POSIX threads`.
 > There are more projects of this course but they are still private for now
 
 ## Сontent
@@ -119,6 +119,9 @@ Get to the green cage (exit) before the other players and avoid getting caught b
 
 If the player gets caught by the enemy, he loses and loses control, but he can anyway follow the match.
 
+### Timer and players revive
+The latest version also adds a maze restart timer after which the maze is regenerated and the players come to life. A new iteration begins!
+
 
 ## Architecture
 
@@ -140,6 +143,7 @@ Messages between client and server:
 - `MSG_GAME_STATE` - the state of the playing field
 - `MSG_PLAYER_LOST` - notification of defeat
 - `MSG_DISCONNECT` - disabling the player
+- `MSG_RESTART_GAME` - server starts a new game iteration
 
 
 ## Debug
@@ -156,4 +160,4 @@ The project organizes the output of messages to the console.
 
 
 ## Extensions
-I'll think about it later... Firstly I wanna upgrade player's UI
+I'll think about it later... Firstly I wanna upgrade player's UI, add connect menu in client, move messages from console to window and some other improvements.
