@@ -3,6 +3,7 @@
 
 The game is a multi-player maze with a client-server architecture, where players must reach the exit, avoiding the enemy who changes the structure of the maze.
 
+![Gameplay preview](demo-img/game-play-demo.gif)
 
 # Course-task Stable ver.
 
@@ -82,6 +83,8 @@ make debug-client
 ```bash
 ./game-server
 ```
+![Server running preview](demo-img/game-serv-demo.gif)
+
 The server will start on **port 8080** and start accepting connections
 
 > Warning: make sure that **port 8080** is free or set your own value for the `SERVER_PORT` macro in the *maze-game/game_commons.h* file.
@@ -95,6 +98,7 @@ The server will start on **port 8080** and start accepting connections
 # Connect to remote one
 ./game-client <ip-address-of-server>
 ```
+![Game client running preview](demo-img/game-client-demo.gif)
 
 ### Clean
 To remove buit files:
