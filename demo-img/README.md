@@ -1,0 +1,1 @@
+This is the folder for demo `.gif` files to use in the main `README.md`.
