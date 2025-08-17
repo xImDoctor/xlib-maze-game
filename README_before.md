@@ -4,19 +4,8 @@
 The game is a multi-player maze with a client-server architecture, where players must reach the exit, avoiding the enemy who changes the structure of the maze.
 
 
-# Course-task Stable ver.
-
-You can figure this version of app (client and server) as stable and it will be migrated to the appropriate branch named like `course-task-stable-ver` and will also be available from **GitHub**.
-
-
-This version is the final version of the application within the framework of the academic discipline `System Programming` with all the improvements and improvements made at that time. I just want to capture this app version and freeze it there.
-
-
-> In the future, I plan to further improve this project, so all the *final* improvements will be made in the `main` branch, and this version will be moved to a separate branch as I said.
-
-
 ## About current state of the project
-The game core (the server part mainly) is almost fully completed and it presents now like `course-task-stable-ver`. However most of the messages to the client part are currently not visualized in the `XWindow` and are displayed in the console where your client is run.
+The game core (the server part mainly) is almost fully completed. However most of the messages to the client part are currently not visualized in the `XWindow` and are displayed in the console where your client is run.
 
 I plan to finalize the project in the near future to a specific *"combat"* version, but I can't say when exactly.
 
