@@ -1,0 +1,1 @@
+gcc -std=c99 -pthread maze-game/client-start-gui.c -o client-gui -lX11
