@@ -53,8 +53,8 @@ Window createAnotherParentWindow(Display* display, int width, int height, char* 
 
 
 // rules subwindow (but parent lvl)
-#define RULES_WIDTH 300
-#define RULES_HEIGHT 250
+#define RULES_WIDTH 500
+#define RULES_HEIGHT 400
 
 typedef struct rules_window_t rulesWinClb;
 struct rules_window_t{      // rules window opt
@@ -97,13 +97,21 @@ void drawRulesWindow(Display* display, Window window) {
     
     // Draw rules
     const char* rules[] = {
-        "Game Rules:",
+        "Controls:",
+        "Move: WASD or Arrow Keys",
+        "Exit game: ESC",
         "",
-        "Controls: WASD or Arrow Keys",
-        "ESC - Exit game",
         "",
-        "Goal: Escape the maze without",
-        "getting caught by the enemy",
+        "Your goal:", 
+        "Escape the generated maze in 1 minute",
+        "without getting caught by the enemy",
+        "",
+        "Enemy changes structure of maze tiles when goes through them",
+        "Changes: wall -> path, path -> wall",
+        "",
+        "Max player count on the each server: 10 (nums from 0 to 9)",
+        "Goodluck!",
+        "",
         "",
         "Press any key to close this window"
     };
