@@ -1,5 +1,12 @@
 #include "game_commons.h"
 
+// include my gui lib: button & field
+#include "../gui-lib/xbutton.h"
+#include "../gui-lib/xtextfield.h"
+// alias for gui structs
+typedef Button _bt;
+typedef TextField _tf;
+
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -342,6 +349,16 @@ void processKeyEvent(XKeyEvent* event) {
 }
 
 
+void drawStartUI(_bt* connectBt, _tf* connectForm, _bt* rulesBt, _bt* exitBt) {
+    
+
+    
+
+
+
+}
+
+
 // get server ip from argv, parse just ip argument as well
 int main(int argc, char* argv[]) {
 
@@ -351,7 +368,6 @@ int main(int argc, char* argv[]) {
         printf("Или введите ip через GUI\n");
         //return 1;
     }
-
 
     // nullify client state data and init its mutex
     // memset(&clientState, 0, sizeof(clientState));
@@ -383,9 +399,23 @@ int main(int argc, char* argv[]) {
     
 
     // init graphics, returns 1 if success
-    if (!init())
-       return 1;
-    
+    if (!init()) {
+        fprintf(stderr, "Client init error\n");
+        return 1;
+    }
+
+    // make client buttons with graphics initialized in clientState
+    Button *connectButton, *rulesButton, *exitButton;
+
+    // y offset between buttons - 20px
+    connectButton = createButton(clientState.graphics.display, clientState.graphics.window, "Connect", 
+    10, 10, 200, 50, COLOR_ORANGE, COLOR_WHITE, "fixed", COLOR_BLACK, NULL, NULL);
+
+    rulesButton = createButton(clientState.graphics.display, clientState.graphics.window, "Rules", 
+    10, 80, 200, 50, COLOR_CYAN, COLOR_WHITE, "fixed", COLOR_BLACK, NULL, NULL);
+
+    exitButton = createButton(clientState.graphics.display, clientState.graphics.window, "Exit", 
+    10, 150, 200, 50, COLOR_PINK, COLOR_WHITE, "fixed", COLOR_BLACK, NULL, NULL);
 
     // pthread_t network_t_id;
     // pthread_create(&network_t_id, NULL, network_thread, NULL);
@@ -400,6 +430,15 @@ int main(int argc, char* argv[]) {
     while (1) {
         XNextEvent(clientState.graphics.display, &event);
 
+        // button prior
+        if (event.xbutton.window == connectButton->window) 
+            handleButtonEvent(&event, connectButton);
+        else if (event.xbutton.window == rulesButton->window) 
+            handleButtonEvent(&event, rulesButton);
+        else if (event.xbutton.window == exitButton->window) 
+            handleButtonEvent(&event, exitButton);
+
+        // base + ingame event loop
         switch(event.type) {
 
             case Expose:
