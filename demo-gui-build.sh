@@ -1,1 +1,1 @@
-gcc -std=c99 -pthread maze-game/client-start-gui.c -o client-gui -lX11
+gcc -std=c99 -pthread maze-game/client-start-gui.c gui-lib/xbutton.c gui-lib/xtextfield.c -o client-gui -lX11
