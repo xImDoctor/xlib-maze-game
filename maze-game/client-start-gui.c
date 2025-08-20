@@ -428,7 +428,8 @@ int main(int argc, char* argv[]) {
     exitButton = createButton(clientState.graphics.display, clientState.graphics.window, "Exit", 
     10, 150, 200, 50, COLOR_PINK, COLOR_WHITE, "fixed", COLOR_BLACK, &closeClient, NULL);
 
-    
+    TextField* connectField = createTextField(clientState.graphics.display, clientState.graphics.window, 220, 20, 200, 30, 
+                                    COLOR_WHITE, "fixed", COLOR_ORANGE, NULL, NULL);
 
     // pthread_t network_t_id;
     // pthread_create(&network_t_id, NULL, network_thread, NULL);
@@ -442,6 +443,8 @@ int main(int argc, char* argv[]) {
             // button prior
             if (event.xbutton.window == connectButton->window)
                 handleButtonEvent(&event, connectButton);
+            else if (event.xbutton.window == connectField->window)
+                handleTextFieldEvent(&event, connectField);
             else if (event.xbutton.window == rulesButton->window)
                 handleButtonEvent(&event, rulesButton);
             else if (event.xbutton.window == exitButton->window)
