@@ -352,15 +352,6 @@ void processKeyEvent(XKeyEvent* event) {
 }
 
 
-void drawStartUI(_bt* connectBt, _tf* connectForm, _bt* rulesBt, _bt* exitBt) {
-    
-
-    
-
-
-
-}
-
 // handler to close app (now used in exitButton, so all other uses changed)
 void closeClient() {
     puts("Closing app.. Goodbye!\n");
@@ -420,7 +411,7 @@ int main(int argc, char* argv[]) {
         0,  // rules displayed
         1   // rules exist (created above)
         }; 
-
+    // rules now in the window
     // puts("[Rules]Управление: WASD или стрелки, ESC - выход из игры\nЦель - выбраться из лабиринта, не попавшись врагу\n");
 
 
@@ -443,7 +434,6 @@ int main(int argc, char* argv[]) {
     // pthread_create(&network_t_id, NULL, network_thread, NULL);
 
 
-    // event loop of this client
     XEvent event;
     while (1)
     {
@@ -484,15 +474,15 @@ int main(int argc, char* argv[]) {
                 case KeyPress: case ButtonPress:
                     toggleRulesWindow(&rulesWindow);
                     break;
-                                case ClientMessage:
+                case ClientMessage:
+                    // Handle window manager close request for rules window
+                    // instead of direct DestroyNotify that destroys both windows
+                    if (event.xclient.data.l[0] == wmDeleteMessage)
+                    {
 
-                // Handle window manager close request for rules window 
-                // instead of direct DestroyNotify that destroys both windows
-                if (event.xclient.data.l[0] == wmDeleteMessage) {
-
-                    puts("[Debug]Rules window close requested - hiding\n");
-                    toggleRulesWindow(&rulesWindow);    // turn it off
-                }
+                        puts("[Debug]Rules window close requested - hiding\n");
+                        toggleRulesWindow(&rulesWindow); // turn it off
+                    }
                 break;
             }
         }
