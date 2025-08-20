@@ -7,6 +7,8 @@
 typedef Button _bt;
 typedef TextField _tf;
 
+#include "client_ui.h"  // funcs and structs of app to use gui lib
+
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -187,19 +189,19 @@ int drawClean() {
 
     XClearWindow(clientState.graphics.display, clientState.graphics.window);
 
-    // show player status
-    XSetForeground(clientState.graphics.display, clientState.graphics.gc, BlackPixel(clientState.graphics.display, 0));
+    // // show player status
+    // XSetForeground(clientState.graphics.display, clientState.graphics.gc, BlackPixel(clientState.graphics.display, 0));
 
 
-    char statusMsg[200];    // buffer to contain and show msg
+    // char statusMsg[200];    // buffer to contain and show msg
 
-    if (clientState.isActive)
-        snprintf(statusMsg, sizeof(statusMsg), "Time left: %d | Player %d is still alive", clientState.gameTimeLeft, clientState.playerID);
-    else
-        snprintf(statusMsg, sizeof(statusMsg), "Time left: %d | Player %d is dead", clientState.gameTimeLeft, clientState.playerID);
+    // if (clientState.isActive)
+    //     snprintf(statusMsg, sizeof(statusMsg), "Time left: %d | Player %d is still alive", clientState.gameTimeLeft, clientState.playerID);
+    // else
+    //     snprintf(statusMsg, sizeof(statusMsg), "Time left: %d | Player %d is dead", clientState.gameTimeLeft, clientState.playerID);
     
 
-    XDrawString(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, 10, clientState.graphics.winHeight - 100, statusMsg, strlen(statusMsg));
+    // XDrawString(clientState.graphics.display, clientState.graphics.window, clientState.graphics.gc, 10, clientState.graphics.winHeight - 100, statusMsg, strlen(statusMsg));
     
 
     XFlush(clientState.graphics.display);
@@ -319,6 +321,7 @@ void sendMove(direction_t moveDir) {
 }
 
 
+void closeClient();
 // process move keys using (WASD and just arrows)
 // idk for now press or release so its just using
 void processKeyEvent(XKeyEvent* event) {
@@ -343,7 +346,7 @@ void processKeyEvent(XKeyEvent* event) {
             break;
 
         case XK_Escape: // if esc used - close game
-            exit(0);
+            closeClient();
             break;
     }
 }
@@ -358,6 +361,11 @@ void drawStartUI(_bt* connectBt, _tf* connectForm, _bt* rulesBt, _bt* exitBt) {
 
 }
 
+// handler to close app (now used in exitButton, so all other uses changed)
+void closeClient() {
+    puts("Closing app.. Goodbye!\n");
+    exit(0);
+}
 
 // get server ip from argv, parse just ip argument as well
 int main(int argc, char* argv[]) {
@@ -404,6 +412,18 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
+    // game keys (to console)
+    rulesWinClb rulesWindow = {
+        clientState.graphics.display, 
+        createAnotherParentWindow(clientState.graphics.display, RULES_WIDTH, RULES_HEIGHT, "Game Rules", "rules", "GameRules"),
+        0,  // rules displayed
+        1   // rules exist (created above)
+        }; 
+
+    // puts("[Rules]Управление: WASD или стрелки, ESC - выход из игры\nЦель - выбраться из лабиринта, не попавшись врагу\n");
+
+
     // make client buttons with graphics initialized in clientState
     Button *connectButton, *rulesButton, *exitButton;
 
@@ -412,49 +432,72 @@ int main(int argc, char* argv[]) {
     10, 10, 200, 50, COLOR_ORANGE, COLOR_WHITE, "fixed", COLOR_BLACK, NULL, NULL);
 
     rulesButton = createButton(clientState.graphics.display, clientState.graphics.window, "Rules", 
-    10, 80, 200, 50, COLOR_CYAN, COLOR_WHITE, "fixed", COLOR_BLACK, NULL, NULL);
+    10, 80, 200, 50, COLOR_CYAN, COLOR_WHITE, "fixed", COLOR_BLACK, &toggleRulesWindow, &rulesWindow);
 
     exitButton = createButton(clientState.graphics.display, clientState.graphics.window, "Exit", 
-    10, 150, 200, 50, COLOR_PINK, COLOR_WHITE, "fixed", COLOR_BLACK, NULL, NULL);
+    10, 150, 200, 50, COLOR_PINK, COLOR_WHITE, "fixed", COLOR_BLACK, &closeClient, NULL);
+
+    
 
     // pthread_t network_t_id;
     // pthread_create(&network_t_id, NULL, network_thread, NULL);
 
 
-    // game keys (to console)
-    puts("[Rules]Управление: WASD или стрелки, ESC - выход из игры\nЦель - выбраться из лабиринта, не попавшись врагу\n");
-
-
     // event loop of this client
     XEvent event;
-    while (1) {
+    while (1)
+    {
         XNextEvent(clientState.graphics.display, &event);
 
-        // button prior
-        if (event.xbutton.window == connectButton->window) 
-            handleButtonEvent(&event, connectButton);
-        else if (event.xbutton.window == rulesButton->window) 
-            handleButtonEvent(&event, rulesButton);
-        else if (event.xbutton.window == exitButton->window) 
-            handleButtonEvent(&event, exitButton);
+            // button prior
+            if (event.xbutton.window == connectButton->window)
+                handleButtonEvent(&event, connectButton);
+            else if (event.xbutton.window == rulesButton->window)
+                handleButtonEvent(&event, rulesButton);
+            else if (event.xbutton.window == exitButton->window)
+                handleButtonEvent(&event, exitButton);
 
-        // base + ingame event loop
-        switch(event.type) {
+            // base + ingame event loop
+            else if (event.xany.window == clientState.graphics.window) {
+            switch (event.type)
+            {
 
             case Expose:
                 drawClean();
                 break;
 
             case KeyPress:
-                // processKeyEvent(&event.xkey);
+                processKeyEvent(&event.xkey);
                 break;
-            
             case DestroyNotify:
-                exit(0);
+                if (event.xdestroywindow.window == clientState.graphics.window)
+                    closeClient();
                 break;
-        }
-
+            }
+        
     }
+        else if (event.xany.window == rulesWindow.window && rulesWindow.isRulesDisplayed) {
+            switch (event.type) {
+                case Expose:
+                    drawRulesWindow(rulesWindow.display, rulesWindow.window);
+                    break;
+                case KeyPress: case ButtonPress:
+                    toggleRulesWindow(&rulesWindow);
+                    break;
+                                case ClientMessage:
+
+                // Handle window manager close request for rules window 
+                // instead of direct DestroyNotify that destroys both windows
+                if (event.xclient.data.l[0] == wmDeleteMessage) {
+
+                    puts("[Debug]Rules window close requested - hiding\n");
+                    toggleRulesWindow(&rulesWindow);    // turn it off
+                }
+                break;
+            }
+        }
+    }
+
 
     // close(clientState.socket);
     // XCloseDisplay(clientState.graphics.display);
