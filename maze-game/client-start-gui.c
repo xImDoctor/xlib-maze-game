@@ -443,15 +443,23 @@ int main(int argc, char* argv[]) {
             // button prior
             if (event.xbutton.window == connectButton->window)
                 handleButtonEvent(&event, connectButton);
-            else if (event.xbutton.window == connectField->window)
-                handleTextFieldEvent(&event, connectField);
-            else if (event.xbutton.window == rulesButton->window)
+            if (event.xbutton.window == rulesButton->window)
                 handleButtonEvent(&event, rulesButton);
-            else if (event.xbutton.window == exitButton->window)
-                handleButtonEvent(&event, exitButton);
+            if (event.xbutton.window == exitButton->window)
+                handleButtonEvent(&event, exitButton);  
+            
+            // must fix field activity bug when clicked in the void
+            if (event.xbutton.window == connectField->window)
+                handleTextFieldEvent(&event, connectField);
+            else if (connectField->isActive && event.type == KeyPress) // if cursor is outside of window but tfield is active, processing keys
+                inFieldKeyPressed(connectField, &event);
+            else if (event.xbutton.window != connectField->window && event.type == ButtonPress) // deactivate button if another window
+                deactivateTextField(connectField);
+            else
+                deactivateTextField(connectField);
 
             // base + ingame event loop
-            else if (event.xany.window == clientState.graphics.window) {
+            if (event.xany.window == clientState.graphics.window) {
             switch (event.type)
             {
 
